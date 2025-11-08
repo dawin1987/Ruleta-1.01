@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta Dinámica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .game-id {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .wheel-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px auto;
+            max-width: 100%;
+        }
+
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .arrow {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #f45c43;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
+            z-index: 10;
+        }
+
+        .participants-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .participants-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .participant-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .participant-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .participant-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.85rem;
+        }
+
+        .qr-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        #qrcode {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .qr-link {
+            word-break: break-all;
+            color: #667eea;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .winners-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .winner-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-radius: 8px;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            animation: popIn 0.5s;
+            position: relative;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .winner-announcement {
+            font-size: 3rem;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            position: absolute;
+            animation: confetti-fall 3s linear;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-open {
+            background: #38ef7d;
+            color: white;
+        }
+
+        .status-closed {
+            background: #eb3349;
+            color: white;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 Ruleta Dinámica de Nombres</h1>
+
+        <div class="game-controls">
+            <div class="game-info">
+                <div>
+                    <span class="game-id">ID del Juego: <strong id="gameIdDisplay">-</strong></span>
+                    <span class="status-badge status-open" id="gameStatus">ABIERTO</span>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="newGameBtn">🎮 Nuevo Juego</button>
+                    <button class="btn btn-danger" id="closeGameBtn" disabled>🔒 Cerrar Juego</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="nameInput" placeholder="Nombre del participante" />
+                <input type="text" id="numberInput" placeholder="Número" />
+                <button class="btn btn-success" id="addParticipantBtn">➕ Agregar</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="wheel-section">
+                <h2>Ruleta</h2>
+                <div class="wheel-container">
+                    <div class="arrow"></div>
+                    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                </div>
+                <button class="btn btn-warning" id="spinBtn" disabled style="font-size: 1.2rem; padding: 15px 30px;">
+                    🎯 GIRAR RULETA
+                </button>
+            </div>
+
+            <div class="participants-section">
+                <h2>Participantes (<span id="participantCount">0</span>)</h2>
+                <div class="participants-list" id="participantsList"></div>
+            </div>
+        </div>
+
+        <div class="qr-section">
+            <h2>📱 Código QR para Participación Remota</h2>
+            <div id="qrcode"></div>
+            <div class="qr-link" id="qrLink">Genera un nuevo juego para obtener el enlace</div>
+        </div>
+
+        <div class="winners-section">
+            <h2>🏆 Ganadores (<span id="winnerCount">0</span>)</h2>
+            <div id="winnersList"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="winnerModal">
+        <div class="modal-content">
+            <h2>🎉 ¡TENEMOS UN GANADOR! 🎉</h2>
+            <div class="winner-announcement" id="winnerName"></div>
+            <button class="btn btn-danger btn-small" id="removeWinnerBtn" style="margin-right: 10px;">🗑️ Eliminar del Juego</button>
+            <button class="btn btn-primary" id="closeModalBtn">Cerrar</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, addDoc, getDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxiTkjfh_80fTdXwzLGOl2YMlHsCOsyRM",
+            authDomain: "ruleta-2dc56.firebaseapp.com",
+            projectId: "ruleta-2dc56",
+            storageBucket: "ruleta-2dc56.firebasestorage.app",
+            messagingSenderId: "596938524799",
+            appId: "1:596938524799:web:8d3fbd8fc5c3da5828174a",
+            measurementId: "G-Y5DCQVLFML"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentGameId = null;
+        let participants = [];
+        let winners = [];
+        let isSpinning = false;
+        let gameStatus = 'open';
+        let currentWinner = null;
+
+        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'];
+
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function generateGameId() {
+            return 'GAME_' + Date.now();
+        }
+
+        async function initNewGame() {
+            currentGameId = generateGameId();
+            participants = [];
+            winners = [];
+            gameStatus = 'open';
+            
+            document.getElementById('gameIdDisplay').textContent = currentGameId;
+            document.getElementById('gameStatus').textContent = 'ABIERTO';
+            document.getElementById('gameStatus').className = 'status-badge status-open';
+            document.getElementById('closeGameBtn').disabled = false;
+            
+            await setDoc(doc(db, 'games', currentGameId), {
+                status: 'open',
+                createdAt: Date.now()
+            });
+
+            generateQR();
+            updateParticipantsList();
+            updateWinnersList();
+            drawWheel();
+            
+            listenToParticipants();
+            listenToWinners();
+        }
+
+        function generateQR() {
+            const qrDiv = document.getElementById('qrcode');
+            qrDiv.innerHTML = '';
+            
+            const url = `${window.location.origin}${window.location.pathname}?join=${currentGameId}`;
+            
+            new QRCode(qrDiv, {
+                text: url,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+            });
+            
+            document.getElementById('qrLink').innerHTML = `<strong>Enlace:</strong> <a href="${url}" target="_blank">${url}</a>`;
+        }
+
+        function listenToParticipants() {
+            const participantsRef = collection(db, 'games', currentGameId, 'participants');
+            onSnapshot(participantsRef, (snapshot) => {
+                participants = [];
+                snapshot.forEach((doc) => {
+                    participants.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                updateParticipantsList();
+                drawWheel();
+            });
+        }
+
+        function listenToWinners() {
+            const winnersRef = collection(db, 'games', currentGameId, 'winners');
+            onSnapshot(winnersRef, (snapshot) => {
+                winners = [];
+                snapshot.forEach((doc) => {
+                    winners.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                updateWinnersList();
+            });
+        }
+
+        async function addParticipant() {
+            const name = document.getElementById('nameInput').value.trim();
+            const number = document.getElementById('numberInput').value.trim();
+            
+            if (!name) {
+                alert('Por favor ingresa un nombre');
+                return;
+            }
+
+            if (!currentGameId) {
+                alert('Primero crea un nuevo juego');
+                return;
+            }
+
+            const gameRef = doc(db, 'games', currentGameId);
+            const gameSnapshot = await getDoc(gameRef);
+            
+            if (gameSnapshot.exists() && gameSnapshot.data().status === 'closed') {
+                alert('Este juego está cerrado');
+                return;
+            }
+
+            const participantsRef = collection(db, 'games', currentGameId, 'participants');
+            await addDoc(participantsRef, {
+                name: name,
+                number: number,
+                addedAt: Date.now()
+            });
+
+            document.getElementById('nameInput').value = '';
+            document.getElementById('numberInput').value = '';
+        }
+
+        async function removeParticipant(id) {
+            if (confirm('¿Eliminar este participante?')) {
+                await deleteDoc(doc(db, 'games', currentGameId, 'participants', id));
+            }
+        }
+
+        function updateParticipantsList() {
+            const list = document.getElementById('participantsList');
+            document.getElementById('participantCount').textContent = participants.length;
+            document.getElementById('spinBtn').disabled = participants.length < 2 || isSpinning;
+            
+            if (participants.length === 0) {
+                list.innerHTML = '<div class="empty-state">No hay participantes aún</div>';
+                return;
+            }
+            
+            list.innerHTML = participants.map((p, index) => `
+                <div class="participant-item">
+                    <span class="participant-name">${p.name} ${p.number ? `(${p.number})` : ''}</span>
+                    <button class="btn btn-danger btn-small" onclick="window.removeParticipant('${p.id}')">Eliminar</button>
+                </div>
+            `).join('');
+        }
+
+        function updateWinnersList() {
+            const list = document.getElementById('winnersList');
+            document.getElementById('winnerCount').textContent = winners.length;
+            
+            if (winners.length === 0) {
+                list.innerHTML = '<div class="empty-state">Aún no hay ganadores</div>';
+                return;
+            }
+            
+            list.innerHTML = winners.map(w => `
+                <div class="winner-item">
+                    <span>🏆 ${w.name} ${w.number ? `(${w.number})` : ''}</span>
+                    <span style="font-size: 0.85rem; color: #666;">${new Date(w.wonAt).toLocaleTimeString()}</span>
+                </div>
+            `).join('');
+        }
+
+        function drawWheel() {
+            if (participants.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#e0e0e0';
+                ctx.beginPath();
+                ctx.arc(200, 200, 180, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#999';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Agrega participantes', 200, 200);
+                return;
+            }
+
+            const centerX = 200;
+            const centerY = 200;
+            const radius = 180;
+            const anglePerSegment = (2 * Math.PI) / participants.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            participants.forEach((p, i) => {
+                const startAngle = i * anglePerSegment;
+                const endAngle = startAngle + anglePerSegment;
+                
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(p.name, radius / 1.5, 5);
+                ctx.restore();
+            });
+
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function spinWheel() {
+            if (isSpinning || participants.length < 2) return;
+            
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            
+            const spinSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE=');
+            spinSound.play().catch(() => {});
+
+            const totalRotation = 360 * 5 + Math.random() * 360;
+            const duration = 5000;
+            const startTime = Date.now();
+            let currentRotation = 0;
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                currentRotation = totalRotation * easeOut;
+                
+                ctx.save();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.translate(200, 200);
+                ctx.rotate((currentRotation * Math.PI) / 180);
+                ctx.translate(-200, -200);
+                drawWheel();
+                ctx.restore();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    announceWinner(currentRotation);
+                }
+            }
+
+            animate();
+        }
+
+        async function announceWinner(rotation) {
+            const normalizedRotation = rotation % 360;
+            const anglePerSegment = 360 / participants.length;
+            const winnerIndex = Math.floor((360 - normalizedRotation) / anglePerSegment) % participants.length;
+            
+            currentWinner = participants[winnerIndex];
+            
+            document.getElementById('winnerName').textContent = currentWinner.name;
+            document.getElementById('winnerModal').classList.add('active');
+            
+            createConfetti();
+            
+            const winSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE=');
+            winSound.play().catch(() => {});
+
+            const winnersRef = collection(db, 'games', currentGameId, 'winners');
+            await addDoc(winnersRef, {
+                name: currentWinner.name,
+                number: currentWinner.number || '',
+                wonAt: Date.now()
+            });
+
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        async function closeGame() {
+            if (confirm('¿Cerrar este juego? No se podrán agregar más participantes.')) {
+                await setDoc(doc(db, 'games', currentGameId), {
+                    status: 'closed',
+                    closedAt: Date.now()
+                }, { merge: true });
+                gameStatus = 'closed';
+                document.getElementById('gameStatus').textContent = 'CERRADO';
+                document.getElementById('gameStatus').className = 'status-badge status-closed';
+                document.getElementById('closeGameBtn').disabled = true;
+                alert('Juego cerrado. Ya no se aceptan más participantes.');
+            }
+        }
+
+        async function removeWinnerFromGame() {
+            if (currentWinner) {
+                await deleteDoc(doc(db, 'games', currentGameId, 'participants', currentWinner.id));
+                document.getElementById('winnerModal').classList.remove('active');
+                currentWinner = null;
+            }
+        }
+
+        document.getElementById('newGameBtn').addEventListener('click', initNewGame);
+        document.getElementById('addParticipantBtn').addEventListener('click', addParticipant);
+        document.getElementById('spinBtn').addEventListener('click', spinWheel);
+        document.getElementById('closeGameBtn').addEventListener('click', closeGame);
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('winnerModal').classList.remove('active');
+        });
+        document.getElementById('removeWinnerBtn').addEventListener('click', removeWinnerFromGame);
+
+        document.getElementById('nameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addParticipant();
+        });
+
+        window.removeParticipant = removeParticipant;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const joinGameId = urlParams.get('join');
+
+        if (joinGameId) {
+            document.body.innerHTML = `
+                <div class="container" style="max-width: 500px; margin-top: 50px;">
+                    <div class="game-controls">
+                        <h2 style="text-align: center; color: #667eea;">🎉 Únete al Juego</h2>
+                        <p style="text-align: center; margin-bottom: 20px;">ID: <strong>${joinGameId}</strong></p>
+                        <div class="input-group" style="flex-direction: column;">
+                            <input type="text" id="joinName" placeholder="Tu nombre" style="margin-bottom: 10px;" />
+                            <input type="text" id="joinNumber" placeholder="Tu número (opcional)" style="margin-bottom: 10px;" />
+                            <button class="btn btn-success" id="joinBtn" style="width: 100%;">✅ Unirme al Juego</button>
+                        </div>
+                        <div id="joinMessage" style="margin-top: 20px; text-align: center; font-weight: bold;"></div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('joinBtn').addEventListener('click', async () => {
+                const name = document.getElementById('joinName').value.trim();
+                const number = document.getElementById('joinNumber').value.trim();
+                const message = document.getElementById('joinMessage');
+
+                if (!name) {
+                    message.style.color = 'red';
+                    message.textContent = '❌ Por favor ingresa tu nombre';
+                    return;
+                }
+
+                const gameRef = doc(db, 'games', joinGameId);
+                const gameSnapshot = await getDoc(gameRef);
+
+                if (!gameSnapshot.exists()) {
+                    message.style.color = 'red';
+                    message.textContent = '❌ Este juego no existe';
+                    return;
+                }
+
+                if (gameSnapshot.data().status === 'closed') {
+                    message.style.color = 'red';
+                    message.textContent = '❌ Este juego está cerrado';
+                    return;
+                }
+
+                const participantsRef = collection(db, 'games', joinGameId, 'participants');
+                await addDoc(participantsRef, {
+                    name: name,
+                    number: number,
+                    addedAt: Date.now()
+                });
+
+                message.style.color = 'green';
+                message.textContent = '✅ ¡Te has unido exitosamente!';
+                document.getElementById('joinName').value = '';
+                document.getElementById('joinNumber').value = '';
+            });
+        }
+    </script>
+</body>
+</html>
