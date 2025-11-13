@@ -389,11 +389,22 @@ header {
         margin: 20px auto;   
                      }
     .arrow {
+    border-bottom: blue;
+    /* object-fit: initial; */
     transform: rotate(4deg);
     position: absolute;
     top: 130px;
-    left: 57%;  
-          }
+    left: 57%;
+    transform: translateX(400%) rotate(90deg);
+    width: 0;
+    height: 0;
+    border-left: 15px solid #e90b0b00;
+    border-right: 15px solid #e7171700;
+    border-top: 40px solid #f45c43;
+    border-bottom: px solid #e90b0b00;
+    filter: drop-shadow(0 1px 5px rgba(0, 0, 0, 0.3));
+    z-index: 10;
+}
 }
 
     </style>
@@ -1071,4 +1082,5 @@ function escapeHtml(str) {
 
 </body>
 </html>
+
 
